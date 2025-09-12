@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PathLabAPI.Data;
 
@@ -11,9 +12,11 @@ using PathLabAPI.Data;
 namespace PathLabAPI.Migrations
 {
     [DbContext(typeof(PathLabDbContext))]
-    partial class PathLabDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250912110212_AddAppUser")]
+    partial class AddAppUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

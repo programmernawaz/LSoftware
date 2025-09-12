@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PathLabAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ea9884cf80c4a4e7b310f8177b8767eca3be5960")]
 [assembly: System.Reflection.AssemblyProductAttribute("PathLabAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PathLabAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

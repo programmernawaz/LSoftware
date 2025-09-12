@@ -434,6 +434,7 @@ D:\dotnet-framework\PathLabAPI\PathLabAPI\obj\Debug\net8.0\PathLabAPI.AssemblyIn
 D:\dotnet-framework\PathLabAPI\PathLabAPI\obj\Debug\net8.0\PathLabAPI.csproj.CoreCompileInputs.cache
 D:\dotnet-framework\PathLabAPI\PathLabAPI\obj\Debug\net8.0\PathLabAPI.MvcApplicationPartsAssemblyInfo.cs
 D:\dotnet-framework\PathLabAPI\PathLabAPI\obj\Debug\net8.0\PathLabAPI.MvcApplicationPartsAssemblyInfo.cache
+D:\dotnet-framework\PathLabAPI\PathLabAPI\obj\Debug\net8.0\PathLabAPI.sourcelink.json
 D:\dotnet-framework\PathLabAPI\PathLabAPI\obj\Debug\net8.0\rjimswa.dswa.cache.json
 D:\dotnet-framework\PathLabAPI\PathLabAPI\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
 D:\dotnet-framework\PathLabAPI\PathLabAPI\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json

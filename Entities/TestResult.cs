@@ -15,5 +15,6 @@ namespace PathLabAPI.Entities
 
         public TestOrderItem TestOrderItem { get; set; } = null!;
         public TestParameter TestParameter { get; set; } = null!;
+        public string? Notes { get; internal set; }
     }
 }

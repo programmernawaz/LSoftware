@@ -10,6 +10,9 @@ namespace PathLabAPI.Entities
         public string ParameterName { get; set; } = string.Empty;
         public string Unit { get; set; } = string.Empty;
         public string ReferenceRange { get; set; } = string.Empty;
+        public double? MinValue { get; set; }     // numeric low bound (if applicable)
+        public double? MaxValue { get; set; }
+        public string Definition { get; set; } = string.Empty;
 
         public LabTest LabTest { get; set; } = null!;
 

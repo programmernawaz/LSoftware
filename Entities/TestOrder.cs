@@ -15,5 +15,9 @@ namespace PathLabAPI.Entities
         public ICollection<TestOrderItem> Items { get; set; } = new List<TestOrderItem>();
         public Invoice? Invoice { get; set; }
 
+        internal object ToDto()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

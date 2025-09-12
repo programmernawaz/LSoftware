@@ -165,5 +165,6 @@ namespace PathLabAPI.Controllers
 
         public TestOrderItemDto? TestOrderItem { get; set; }
         public ParameterDto? TestParameter { get; set; }
+        public string? Notes { get; internal set; }
     }
 }
