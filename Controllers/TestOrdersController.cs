@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using PathLabAPI.Data;
 using PathLabAPI.Dto;
 using PathLabAPI.Entities;
+using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace PathLabAPI.Controllers
 {
@@ -190,12 +192,26 @@ namespace PathLabAPI.Controllers
                             TestParameterId = r.TestParameterId,
                             Value = r.Value ?? string.Empty,
                             Notes = r.Notes
+                            // Flag will be computed below before save
                         });
                     }
                 }
 
                 if (resultsToAdd.Any())
                 {
+                    // fetch reference ranges for relevant parameters
+                    var paramIds = resultsToAdd.Select(rr => rr.TestParameterId).Distinct().ToList();
+                    var paramRanges = await _context.TestParameters
+                        .Where(p => paramIds.Contains(p.Id))
+                        .ToDictionaryAsync(p => p.Id, p => p.ReferenceRange);
+
+                    // compute flags (H/L) conservatively
+                    foreach (var rr in resultsToAdd)
+                    {
+                        paramRanges.TryGetValue(rr.TestParameterId, out var refRange);
+                        rr.Flag = ComputeFlag(rr.Value, refRange);
+                    }
+
                     _context.TestResults.AddRange(resultsToAdd);
                     await _context.SaveChangesAsync();
                 }
@@ -248,12 +264,21 @@ namespace PathLabAPI.Controllers
                     return BadRequest($"Parameter id {r.TestParameterId} does not belong to LabTest {item.LabTestId}.");
             }
 
-            var entities = req.Select(r => new TestResult
+            // map parameter id -> referenceRange for flag calculation
+            var paramRefMap = item.LabTest?.Parameters?.ToDictionary(p => p.Id, p => p.ReferenceRange) ?? new Dictionary<int, string?>();
+
+            var entities = req.Select(r =>
             {
-                TestOrderItemId = itemId,
-                TestParameterId = r.TestParameterId,
-                Value = r.Value ?? string.Empty,
-                Notes = r.Notes
+                paramRefMap.TryGetValue(r.TestParameterId, out var refRange);
+                var ent = new TestResult
+                {
+                    TestOrderItemId = itemId,
+                    TestParameterId = r.TestParameterId,
+                    Value = r.Value ?? string.Empty,
+                    Notes = r.Notes,
+                    Flag = ComputeFlag(r.Value, refRange)
+                };
+                return ent;
             }).ToList();
 
             _context.TestResults.AddRange(entities);
@@ -352,5 +377,57 @@ namespace PathLabAPI.Controllers
         }
 
         private string GeneratePatientCode() => "P-" + DateTime.UtcNow.ToString("yyMMddHHmmss");
+
+        /// <summary>
+        /// Compute flag "H" or "L" given a numeric result value string and a simple reference range string.
+        /// Supports: "min-max" (e.g. "12-16"), "&lt;X" (e.g. "<40"), "&gt;X" (e.g. ">0.5").
+        /// Returns "H" if value above range, "L" if below range, otherwise null.
+        /// Conservative: returns null when unable to parse.
+        /// </summary>
+        private static string? ComputeFlag(string? valueStr, string? referenceRange)
+        {
+            if (string.IsNullOrWhiteSpace(valueStr) || string.IsNullOrWhiteSpace(referenceRange))
+                return null;
+
+            // normalize
+            valueStr = valueStr.Trim();
+            referenceRange = referenceRange.Trim();
+
+            // try parse numeric value (invariant culture)
+            if (!double.TryParse(valueStr.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, out var value))
+                return null;
+
+            // 1) range "min-max"
+            var rangeMatch = Regex.Match(referenceRange, @"^\s*(?<min>-?\d+(\.\d+)?)\s*-\s*(?<max>-?\d+(\.\d+)?)\s*$");
+            if (rangeMatch.Success)
+            {
+                if (double.TryParse(rangeMatch.Groups["min"].Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var min)
+                    && double.TryParse(rangeMatch.Groups["max"].Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var max))
+                {
+                    if (value < min) return "L";
+                    if (value > max) return "H";
+                    return null;
+                }
+            }
+
+            // 2) "<X" -> value should be less than X (if value > X => high)
+            var ltMatch = Regex.Match(referenceRange, @"<\s*(?<x>-?\d+(\.\d+)?)");
+            if (ltMatch.Success && double.TryParse(ltMatch.Groups["x"].Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var lt))
+            {
+                if (value > lt) return "H";
+                return null;
+            }
+
+            // 3) ">X" -> value should be greater than X (if value < X => low)
+            var gtMatch = Regex.Match(referenceRange, @">\s*(?<x>-?\d+(\.\d+)?)");
+            if (gtMatch.Success && double.TryParse(gtMatch.Groups["x"].Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var gt))
+            {
+                if (value < gt) return "L";
+                return null;
+            }
+
+            // no rule matched -> return null (unknown)
+            return null;
+        }
     }
 }
